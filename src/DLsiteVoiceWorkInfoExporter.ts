@@ -1,3 +1,7 @@
+function removeBracketedText(text: string): string {
+  return text.replace(/【.*?】/g, "");
+}
+
 function main(): void {
   const workNameElement = document.getElementById("work_name");
 
@@ -51,20 +55,21 @@ function main(): void {
     }
   }
   const voiceActorsStr = voiceActors.join(", ");
-  const blob = new Blob(
-      [
-        voiceActorsStr +
-          " " +
-          workName +
-          " " +
-          year +
-          " HVoiceDrama " +
-          makerName,
-      ],
-      {
-        type: "text/plain",
-      }
-    ),
+  const text = JSON.stringify(
+    {
+      "作品名(オリジナル)": workName,
+      作品名: removeBracketedText(workName),
+      声優: voiceActorsStr,
+      年: year,
+      ジャンル: "HVoiceDrama",
+      サークル名: makerName,
+    },
+    null,
+    2
+  );
+  const blob = new Blob([text], {
+      type: "text/plain",
+    }),
     downloadURL = URL.createObjectURL(blob),
     downloadLink = document.createElement("a");
   downloadLink.href = downloadURL;

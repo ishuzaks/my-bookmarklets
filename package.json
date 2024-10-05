@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "build": "node esbuild.mjs"
+  },
   "keywords": [],
   "author": "",
   "license": "MIT",

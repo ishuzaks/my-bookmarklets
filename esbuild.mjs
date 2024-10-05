@@ -15,4 +15,5 @@ await esbuild.build({
   minify: true,
   platform: "browser",
   outdir: "dist",
+  banner: { js: "javascript:" },
 });

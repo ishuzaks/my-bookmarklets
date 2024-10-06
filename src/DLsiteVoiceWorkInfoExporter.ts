@@ -57,12 +57,13 @@ function main(): void {
   const voiceActorsStr = voiceActors.join(", ");
   const text = JSON.stringify(
     {
-      "作品名(オリジナル)": workName,
-      作品名: removeBracketedText(workName),
       声優: voiceActorsStr,
+      作品名: removeBracketedText(workName),
       年: year,
       ジャンル: "HVoiceDrama",
       サークル名: makerName,
+      "作品名(オリジナル)": workName,
+      フォルダ名: `[${makerName}] ${workName}`,
     },
     null,
     2

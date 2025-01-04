@@ -35,11 +35,18 @@ function main(): void {
       return map.get(e) ?? e;
     }
   );
-  const yearMatchedObj = document
+  const published_date_href = document
     .querySelector('a[href*="year"]')
-    ?.getAttribute("href")
-    ?.match(/\/year\/(\d+)\//);
-  const year = yearMatchedObj ? yearMatchedObj[1] : "";
+    ?.getAttribute("href");
+  const yearMatchedObj = published_date_href?.match(/\/year\/(\d+)\//);
+  const monthMatchedObj = published_date_href?.match(/\/mon\/(\d+)\//);
+  const dayMatchedObj = published_date_href?.match(/\/day\/(\d+)\//);
+  const year =
+    yearMatchedObj && yearMatchedObj.length >= 2 ? yearMatchedObj[1] : "";
+  const month =
+    monthMatchedObj && monthMatchedObj.length >= 2 ? monthMatchedObj[1] : "";
+  const day =
+    dayMatchedObj && dayMatchedObj.length >= 2 ? dayMatchedObj[1] : "";
   const voiceActorXPathResult = document.evaluate(
     "//th[contains(text(), '声優')]/following-sibling::td/a",
     document,
@@ -59,7 +66,12 @@ function main(): void {
     {
       声優: voiceActorsStr,
       作品名: removeBracketedText(workName),
-      年: year,
+      リリース日: {
+        年月日: `${year}-${month}-${day}`,
+        年: year,
+        月: month,
+        日: day,
+      },
       ジャンル: "HVoiceDrama",
       サークル名: makerName,
       "作品名(オリジナル)": workName,
@@ -69,10 +81,10 @@ function main(): void {
     2
   );
   const blob = new Blob([text], {
-      type: "text/plain",
-    }),
-    downloadURL = URL.createObjectURL(blob),
-    downloadLink = document.createElement("a");
+    type: "text/plain",
+  });
+  const downloadURL = URL.createObjectURL(blob);
+  const downloadLink = document.createElement("a");
   downloadLink.href = downloadURL;
   downloadLink.download = `${saveFileName}.txt`;
   document.body.appendChild(downloadLink);

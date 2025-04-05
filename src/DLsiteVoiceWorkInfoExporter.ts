@@ -28,6 +28,11 @@ function main(): void {
     return;
   }
 
+  downloadWorkInfo();
+  downloadWorksJacketImage();
+}
+
+function downloadWorkInfo(): void {
   const workNameElement = document.getElementById("work_name");
 
   if (workNameElement === null || workNameElement.textContent === null) {
@@ -110,6 +115,59 @@ function main(): void {
     }
   );
   downloadAsFile(`${saveFileName}.txt`, [text], "text/plain");
+}
+
+function downloadWorksJacketImage(): void {
+  const imageElement = document.querySelector(
+    "#work_left ul.slider_items li:first-of-type source"
+  ) as HTMLImageElement;
+  if (imageElement === null) {
+    alert("ジャケット画像を取得できませんでした。");
+    return;
+  }
+
+  const imageUrl = new URL(imageElement.srcset, location.href);
+  const saveFileName =
+    imageUrl.pathname
+      .split("/")
+      .slice(-1)[0]
+      .replace(/\.webp$/i, ".png") || "jacket.png";
+
+  // 新しいImageオブジェクトを作成して画像を読み込む (CORS対策)
+  const originalImage = new Image();
+  originalImage.crossOrigin = "Anonymous"; // CORSリクエストを試みる
+  originalImage.onload = function () {
+    // 画像読み込み成功
+    try {
+      // Canvasを作成
+      const canvas = document.createElement("canvas");
+      canvas.width = originalImage.naturalWidth;
+      canvas.height = originalImage.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        alert("Canvasのコンテキスト取得に失敗しました");
+        return;
+      }
+      // Canvasに画像を描画
+      ctx.drawImage(originalImage, 0, 0);
+
+      // Canvasの内容をPNGのBlobとして取得
+      canvas.toBlob(function (blob) {
+        if (blob) {
+          downloadAsFile(saveFileName, [blob], "image/png");
+        } else {
+          alert(`PNG Blobの生成に失敗しました: ${imageUrl}`);
+        }
+      }, "image/png"); // PNG形式を指定
+    } catch (e) {
+      // Canvas操作中のエラー (多くはCORS関連)
+      alert(
+        `画像の処理に失敗しました (CORSの問題の可能性が高いです):\n${imageUrl}`
+      );
+    }
+  };
+  // 画像の読み込みを開始
+  originalImage.src = imageUrl.href;
 }
 
 main();

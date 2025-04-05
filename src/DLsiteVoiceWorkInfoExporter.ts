@@ -2,6 +2,26 @@ function removeBracketedText(text: string): string {
   return text.replace(/【.*?】/g, "");
 }
 
+function removeWhiteHeavyCheckMark(text: string): string {
+  return text.replace(/\u2705.*?\u2705/g, "");
+}
+
+function downloadAsFile(
+  fileName: string,
+  BlobPart: BlobPart[],
+  mimeType: string
+): void {
+  const blob = new Blob(BlobPart, { type: mimeType });
+  const downloadURL = URL.createObjectURL(blob);
+  const downloadLink = document.createElement("a");
+  downloadLink.href = downloadURL;
+  downloadLink.download = fileName;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+  URL.revokeObjectURL(downloadURL);
+}
+
 function main(): void {
   if (location.hostname !== "www.dlsite.com") {
     alert("DLsiteのページで実行してください。");
@@ -22,24 +42,6 @@ function main(): void {
     return;
   }
   const makerName = makerNameElement.textContent.trim();
-  const saveFileName = ("[" + makerName + "] " + workName).replace(
-    /[:*?"<>|/\\]/g,
-    (e: string): string => {
-      const map = new Map<string, string>([
-        [":", "："],
-        ["*", "＊"],
-        ["!", "！"],
-        ["?", "？"],
-        ['"', "”"],
-        ["<", "＜"],
-        [">", "＞"],
-        ["|", "｜"],
-        ["/", "／"],
-        ["\\", "￥"],
-      ]);
-      return map.get(e) ?? e;
-    }
-  );
   const published_date_href = document
     .querySelector('a[href*="year"]')
     ?.getAttribute("href");
@@ -67,10 +69,13 @@ function main(): void {
     }
   }
   const voiceActorsStr = voiceActors.join(", ");
+  const cleanedUpWorkName = removeWhiteHeavyCheckMark(
+    removeBracketedText(workName)
+  );
   const text = JSON.stringify(
     {
       声優: voiceActorsStr,
-      作品名: removeBracketedText(workName),
+      作品名: cleanedUpWorkName,
       リリース日: {
         年月日: `${year}-${month}-${day}`,
         年: year,
@@ -85,14 +90,26 @@ function main(): void {
     null,
     2
   );
-  const blob = new Blob([text], { type: "text/plain" });
-  const downloadURL = URL.createObjectURL(blob);
-  const downloadLink = document.createElement("a");
-  downloadLink.href = downloadURL;
-  downloadLink.download = `${saveFileName}.txt`;
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-  URL.revokeObjectURL(downloadURL);
+
+  const saveFileName = ("[" + makerName + "] " + cleanedUpWorkName).replace(
+    /[:*?"<>|/\\]/g,
+    (e: string): string => {
+      const map = new Map<string, string>([
+        [":", "："],
+        ["*", "＊"],
+        ["!", "！"],
+        ["?", "？"],
+        ['"', "”"],
+        ["<", "＜"],
+        [">", "＞"],
+        ["|", "｜"],
+        ["/", "／"],
+        ["\\", "￥"],
+      ]);
+      return map.get(e) ?? e;
+    }
+  );
+  downloadAsFile(`${saveFileName}.txt`, [text], "text/plain");
 }
+
 main();

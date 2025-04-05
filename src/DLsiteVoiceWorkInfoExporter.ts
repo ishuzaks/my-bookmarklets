@@ -3,6 +3,11 @@ function removeBracketedText(text: string): string {
 }
 
 function main(): void {
+  if (location.hostname !== "www.dlsite.com") {
+    alert("DLsiteのページで実行してください。");
+    return;
+  }
+
   const workNameElement = document.getElementById("work_name");
 
   if (workNameElement === null || workNameElement.textContent === null) {
@@ -80,9 +85,7 @@ function main(): void {
     null,
     2
   );
-  const blob = new Blob([text], {
-    type: "text/plain",
-  });
+  const blob = new Blob([text], { type: "text/plain" });
   const downloadURL = URL.createObjectURL(blob);
   const downloadLink = document.createElement("a");
   downloadLink.href = downloadURL;

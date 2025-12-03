@@ -109,7 +109,7 @@ function downloadWorkInfo(): void {
   );
 
   const saveFileName = ("[" + makerName + "] " + cleanedUpWorkName).replace(
-    /[:*?"<>|/\\]/g,
+    /[:*?"<>|/\\!]/g,
     (e: string): string => {
       const map = new Map<string, string>([
         [":", "："],

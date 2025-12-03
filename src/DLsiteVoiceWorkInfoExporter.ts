@@ -141,15 +141,26 @@ function downloadWorksJacketImage(): void {
     try {
       // Canvasを作成
       const canvas = document.createElement("canvas");
-      canvas.width = originalImage.naturalWidth;
-      canvas.height = originalImage.naturalHeight;
+      const size = Math.max(
+        originalImage.naturalWidth,
+        originalImage.naturalHeight
+      );
+      canvas.width = size;
+      canvas.height = size;
       const ctx = canvas.getContext("2d");
       if (!ctx) {
         alert("Canvasのコンテキスト取得に失敗しました");
         return;
       }
-      // Canvasに画像を描画
-      ctx.drawImage(originalImage, 0, 0);
+
+      // 背景を白で塗りつぶし
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, size, size);
+
+      // Canvasの中央に画像を描画
+      const x = (size - originalImage.naturalWidth) / 2;
+      const y = (size - originalImage.naturalHeight) / 2;
+      ctx.drawImage(originalImage, x, y);
 
       // Canvasの内容をPNGのBlobとして取得
       canvas.toBlob(function (blob) {

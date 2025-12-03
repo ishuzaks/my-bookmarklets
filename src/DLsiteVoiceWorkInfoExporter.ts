@@ -77,6 +77,18 @@ function downloadWorkInfo(): void {
   const cleanedUpWorkName = removeWhiteHeavyCheckMark(
     removeBracketedText(workName)
   );
+
+  const ageRestrictionXPathResult = document.evaluate(
+    "//th[contains(text(), '年齢指定')]/following-sibling::td",
+    document,
+    null,
+    XPathResult.FIRST_ORDERED_NODE_TYPE,
+    null
+  );
+  const ageRestrictionElement = ageRestrictionXPathResult.singleNodeValue;
+  const ageRestriction = ageRestrictionElement?.textContent?.trim() ?? "";
+  const genre = ageRestriction.includes("R18") ? "HVoiceDrama" : "VoiceDrama";
+
   const text = JSON.stringify(
     {
       声優: voiceActorsStr,
@@ -87,7 +99,7 @@ function downloadWorkInfo(): void {
         月: month,
         日: day,
       },
-      ジャンル: "HVoiceDrama",
+      ジャンル: genre,
       サークル名: makerName,
       "作品名(オリジナル)": workName,
       フォルダ名: `[${makerName}] ${workName}`,

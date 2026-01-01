@@ -1,3 +1,31 @@
+declare const process: any;
+
+const FILE_NAME_REPLACE_MAP = new Map<string, string>([
+  [":", "："],
+  ["*", "＊"],
+  ["!", "！"],
+  ["?", "？"],
+  ['"', "”"],
+  ["<", "＜"],
+  [">", "＞"],
+  ["|", "｜"],
+  ["/", "／"],
+  ["\\", "￥"],
+]);
+
+export function sanitizeFileName(name: string): string {
+  return name.replace(/[:*?"<>|/\\!]/g, (e) => FILE_NAME_REPLACE_MAP.get(e) ?? e);
+}
+
+interface WorkInfo {
+  workName: string;
+  cleanedUpWorkName: string;
+  makerName: string;
+  voiceActorsStr: string;
+  releaseDate: { year: string; month: string; day: string };
+  genre: string;
+}
+
 function removeBracketedText(text: string): string {
   return text.replace(/【.*?】/g, "");
 }
@@ -32,35 +60,65 @@ function main(): void {
   downloadWorksJacketImage();
 }
 
-function downloadWorkInfo(): void {
+function getWorkInfoFromDOM(): WorkInfo | null {
   const workNameElement = document.getElementById("work_name");
 
   if (workNameElement === null || workNameElement.textContent === null) {
     alert("作品名を取得できませんでした。");
-    return;
+    return null;
   }
   const workName = workNameElement.textContent.trim();
 
   const makerNameElement = document.querySelector("span.maker_name");
   if (makerNameElement === null || makerNameElement.textContent === null) {
     alert("サークル名を取得できませんでした。");
-    return;
+    return null;
   }
   const makerName = makerNameElement.textContent.trim();
-  const published_date_href = document
-    .querySelector('a[href*="year"]')
-    ?.getAttribute("href");
-  const yearMatchedObj = published_date_href?.match(/\/year\/(\d+)\//);
-  const monthMatchedObj = published_date_href?.match(/\/mon\/(\d+)\//);
-  const dayMatchedObj = published_date_href?.match(/\/day\/(\d+)\//);
-  const year =
-    yearMatchedObj && yearMatchedObj.length >= 2 ? yearMatchedObj[1] : "";
-  const month =
-    monthMatchedObj && monthMatchedObj.length >= 2 ? monthMatchedObj[1] : "";
-  const day =
-    dayMatchedObj && dayMatchedObj.length >= 2 ? dayMatchedObj[1] : "";
+
+  // Try to find the release date anchor using a robust XPath
+  const releaseDateNode = document.evaluate(
+    "//th[contains(., '販売日')]/following-sibling::td/a",
+    document,
+    null,
+    XPathResult.FIRST_ORDERED_NODE_TYPE,
+    null
+  ).singleNodeValue as HTMLAnchorElement | null;
+
+  let releaseDateHref: string | null = null;
+  let releaseDateText: string | null = null;
+
+  if (releaseDateNode) {
+    releaseDateHref = releaseDateNode.href;
+    releaseDateText = releaseDateNode.textContent?.trim() ?? null;
+  } else {
+    // Fallback: try to find the TD directly if A is missing
+    console.warn("Release date anchor not found, trying fallback to CD.");
+    const releaseDateTd = document.evaluate(
+      "//th[contains(., '販売日')]/following-sibling::td",
+      document,
+      null,
+      XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue as HTMLElement | null;
+    if (releaseDateTd) {
+      releaseDateText = releaseDateTd.textContent?.trim() ?? null;
+    } else {
+      console.error("Release date TD not found.");
+    }
+  }
+
+  const { year, month, day } = parseReleaseDate(
+    releaseDateText,
+    releaseDateHref
+  );
+
+  if (!year || !month || !day) {
+    console.error("Failed to parse release date.", { releaseDateText, releaseDateHref });
+  }
+
   const voiceActorXPathResult = document.evaluate(
-    "//th[contains(text(), '声優')]/following-sibling::td/a",
+    "//th[contains(., '声優')]/following-sibling::td/a",
     document,
     null,
     XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
@@ -79,7 +137,7 @@ function downloadWorkInfo(): void {
   );
 
   const ageRestrictionXPathResult = document.evaluate(
-    "//th[contains(text(), '年齢指定')]/following-sibling::td",
+    "//th[contains(., '年齢指定')]/following-sibling::td",
     document,
     null,
     XPathResult.FIRST_ORDERED_NODE_TYPE,
@@ -87,44 +145,43 @@ function downloadWorkInfo(): void {
   );
   const ageRestrictionElement = ageRestrictionXPathResult.singleNodeValue;
   const ageRestriction = ageRestrictionElement?.textContent?.trim() ?? "";
-  const genre = ageRestriction.includes("R18") ? "HVoiceDrama" : "VoiceDrama";
+  const genre = determineGenre(ageRestriction);
+
+  return {
+    workName,
+    cleanedUpWorkName,
+    makerName,
+    voiceActorsStr,
+    releaseDate: { year, month, day },
+    genre,
+  };
+}
+
+function downloadWorkInfo(): void {
+  const info = getWorkInfoFromDOM();
+  if (!info) return;
 
   const text = JSON.stringify(
     {
-      声優: voiceActorsStr,
-      作品名: cleanedUpWorkName,
+      声優: info.voiceActorsStr,
+      作品名: info.cleanedUpWorkName,
       リリース日: {
-        年月日: `${year}-${month}-${day}`,
-        年: year,
-        月: month,
-        日: day,
+        年月日: `${info.releaseDate.year}-${info.releaseDate.month}-${info.releaseDate.day}`,
+        年: info.releaseDate.year,
+        月: info.releaseDate.month,
+        日: info.releaseDate.day,
       },
-      ジャンル: genre,
-      サークル名: makerName,
-      "作品名(オリジナル)": workName,
-      フォルダ名: `[${makerName}] ${workName}`,
+      ジャンル: info.genre,
+      サークル名: info.makerName,
+      "作品名(オリジナル)": info.workName,
+      フォルダ名: `[${info.makerName}] ${info.workName}`,
     },
     null,
     2
   );
 
-  const saveFileName = ("[" + makerName + "] " + cleanedUpWorkName).replace(
-    /[:*?"<>|/\\!]/g,
-    (e: string): string => {
-      const map = new Map<string, string>([
-        [":", "："],
-        ["*", "＊"],
-        ["!", "！"],
-        ["?", "？"],
-        ['"', "”"],
-        ["<", "＜"],
-        [">", "＞"],
-        ["|", "｜"],
-        ["/", "／"],
-        ["\\", "￥"],
-      ]);
-      return map.get(e) ?? e;
-    }
+  const saveFileName = sanitizeFileName(
+    `[${info.makerName}] ${info.cleanedUpWorkName}`
   );
   downloadAsFile(`${saveFileName}.txt`, [text], "text/plain");
 }
@@ -193,4 +250,51 @@ function downloadWorksJacketImage(): void {
   originalImage.src = imageUrl.href;
 }
 
-main();
+// Export functions for testing
+export function determineGenre(ageRestriction: string): string {
+  const keywords = ["R-18", "R18", "18禁"];
+  for (const keyword of keywords) {
+    if (ageRestriction.includes(keyword)) {
+      return "HVoiceDrama";
+    }
+  }
+  return "VoiceDrama";
+}
+
+export function parseReleaseDate(
+  dateString: string | null,
+  urlString: string | null
+): { year: string; month: string; day: string } {
+  let year = "";
+  let month = "";
+  let day = "";
+
+  if (urlString) {
+    const yMatch = urlString.match(/\/year\/(\d+)/);
+    const mMatch = urlString.match(/\/mon\/(\d+)/);
+    const dMatch = urlString.match(/\/day\/(\d+)/);
+
+    if (yMatch) year = yMatch[1];
+    if (mMatch) month = mMatch[1];
+    if (dMatch) day = dMatch[1];
+  }
+
+  if (!year || !month || !day) {
+    if (dateString) {
+      const match = dateString.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
+      if (match) {
+        if (!year) year = match[1];
+        if (!month) month = match[2];
+        if (!day) day = match[3];
+      }
+    }
+  }
+
+  return { year, month, day };
+}
+
+// execute if not in test environment (simple check)
+// @ts-ignore
+if (typeof process === "undefined" || (process.env && process.env.NODE_ENV !== "test")) {
+  main();
+}

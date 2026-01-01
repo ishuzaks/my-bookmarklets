@@ -1,21 +1,11 @@
 declare const process: any;
 
-const FILE_NAME_REPLACE_MAP = new Map<string, string>([
-  [":", "："],
-  ["*", "＊"],
-  ["!", "！"],
-  ["?", "？"],
-  ['"', "”"],
-  ["<", "＜"],
-  [">", "＞"],
-  ["|", "｜"],
-  ["/", "／"],
-  ["\\", "￥"],
-]);
+import {
+  sanitizeFileName,
+  removeBracketedText,
+  removeWhiteHeavyCheckMark,
+} from "./utils";
 
-export function sanitizeFileName(name: string): string {
-  return name.replace(/[:*?"<>|/\\!]/g, (e) => FILE_NAME_REPLACE_MAP.get(e) ?? e);
-}
 
 interface WorkInfo {
   workName: string;
@@ -26,13 +16,7 @@ interface WorkInfo {
   genre: string;
 }
 
-function removeBracketedText(text: string): string {
-  return text.replace(/【.*?】/g, "");
-}
 
-function removeWhiteHeavyCheckMark(text: string): string {
-  return text.replace(/\u2705.*?\u2705/g, "");
-}
 
 function downloadAsFile(
   fileName: string,

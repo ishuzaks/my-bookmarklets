@@ -2,7 +2,7 @@
   "name": "my-bookmarklets",
   "version": "1.0.0",
   "description": "",
-  "keywords": [ ],
+  "keywords": [],
   "license": "MIT",
   "author": "",
   "main": "index.js",
@@ -12,13 +12,11 @@
     "lint": "eslint .",
     "format": "prettier --write ."
   },
-  "dependencies": {
-    "oxfmt": "^0.40.0",
-    "oxlint": "^1.55.0"
-  },
   "devDependencies": {
     "esbuild": "^0.24.2",
     "globals": "^15.15.0",
+    "oxfmt": "^0.40.0",
+    "oxlint": "^1.55.0",
     "typescript": "^5.8.2"
   }
 }

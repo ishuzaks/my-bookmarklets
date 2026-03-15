@@ -78,7 +78,7 @@ function getWorkInfoFromDOM(): WorkInfo | null {
     document,
     null,
     XPathResult.FIRST_ORDERED_NODE_TYPE,
-    null
+    null,
   ).singleNodeValue as HTMLAnchorElement | null;
 
   let releaseDateHref: string | null = null;
@@ -95,7 +95,7 @@ function getWorkInfoFromDOM(): WorkInfo | null {
       document,
       null,
       XPathResult.FIRST_ORDERED_NODE_TYPE,
-      null
+      null,
     ).singleNodeValue as HTMLElement | null;
     if (releaseDateTd) {
       releaseDateText = releaseDateTd.textContent?.trim() ?? null;
@@ -104,10 +104,7 @@ function getWorkInfoFromDOM(): WorkInfo | null {
     }
   }
 
-  const { year, month, day } = parseReleaseDate(
-    releaseDateText,
-    releaseDateHref
-  );
+  const { year, month, day } = parseReleaseDate(releaseDateText, releaseDateHref);
 
   if (!year || !month || !day) {
     console.error("Failed to parse release date.", { releaseDateText, releaseDateHref });
@@ -128,16 +125,14 @@ function getWorkInfoFromDOM(): WorkInfo | null {
     }
   }
   const voiceActorsStr = voiceActors.join(", ");
-  const cleanedUpWorkName = removeWhiteHeavyCheckMark(
-    removeBracketedText(workName)
-  );
+  const cleanedUpWorkName = removeWhiteHeavyCheckMark(removeBracketedText(workName));
 
   const ageRestrictionXPathResult = document.evaluate(
     "//th[contains(., '年齢指定')]/following-sibling::td",
     document,
     null,
     XPathResult.FIRST_ORDERED_NODE_TYPE,
-    null
+    null,
   );
   const ageRestrictionElement = ageRestrictionXPathResult.singleNodeValue;
   const ageRestriction = ageRestrictionElement?.textContent?.trim() ?? "";
@@ -176,9 +171,7 @@ function downloadWorkInfo(): void {
     2,
   );
 
-  const saveFileName = sanitizeFileName(
-    `[${info.makerName}] ${info.cleanedUpWorkName}`
-  );
+  const saveFileName = sanitizeFileName(`[${info.makerName}] ${info.cleanedUpWorkName}`);
   downloadAsFile(`${saveFileName}.txt`, [text], "text/plain");
 }
 
@@ -206,10 +199,7 @@ function downloadWorksJacketImage(): void {
     try {
       // Canvasを作成
       const canvas = document.createElement("canvas");
-      const size = Math.max(
-        originalImage.naturalWidth,
-        originalImage.naturalHeight
-      );
+      const size = Math.max(originalImage.naturalWidth, originalImage.naturalHeight);
       canvas.width = size;
       canvas.height = size;
       const ctx = canvas.getContext("2d");
@@ -257,7 +247,7 @@ export function determineGenre(ageRestriction: string): string {
 
 export function parseReleaseDate(
   dateString: string | null,
-  urlString: string | null
+  urlString: string | null,
 ): { year: string; month: string; day: string } {
   let year = "";
   let month = "";

@@ -148,7 +148,7 @@ function downloadWorksJacketImage(): void {
           alert(`PNG Blobの生成に失敗しました: ${imageUrl}`);
         }
       }, "image/png"); // PNG形式を指定
-    } catch (e) {
+    } catch {
       // Canvas操作中のエラー (多くはCORS関連)
       alert(`画像の処理に失敗しました (CORSの問題の可能性が高いです):\n${imageUrl}`);
     }

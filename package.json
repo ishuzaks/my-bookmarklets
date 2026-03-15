@@ -2,12 +2,15 @@
   "name": "my-bookmarklets",
   "version": "1.0.0",
   "description": "",
-  "keywords": [],
+  "keywords": [ ],
   "license": "MIT",
   "author": "",
   "main": "index.js",
   "scripts": {
-    "build": "node esbuild.mjs"
+    "build": "node esbuild.mjs src/DLsiteVoiceWorkInfoExporter.ts",
+    "test": "vitest",
+    "lint": "eslint .",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "oxfmt": "^0.40.0",

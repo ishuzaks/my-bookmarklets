@@ -6,11 +6,7 @@ function removeWhiteHeavyCheckMark(text: string): string {
   return text.replace(/\u2705.*?\u2705/g, "");
 }
 
-function downloadAsFile(
-  fileName: string,
-  BlobPart: BlobPart[],
-  mimeType: string
-): void {
+function downloadAsFile(fileName: string, BlobPart: BlobPart[], mimeType: string): void {
   const blob = new Blob(BlobPart, { type: mimeType });
   const downloadURL = URL.createObjectURL(blob);
   const downloadLink = document.createElement("a");
@@ -47,24 +43,19 @@ function downloadWorkInfo(): void {
     return;
   }
   const makerName = makerNameElement.textContent.trim();
-  const published_date_href = document
-    .querySelector('a[href*="year"]')
-    ?.getAttribute("href");
+  const published_date_href = document.querySelector('a[href*="year"]')?.getAttribute("href");
   const yearMatchedObj = published_date_href?.match(/\/year\/(\d+)\//);
   const monthMatchedObj = published_date_href?.match(/\/mon\/(\d+)\//);
   const dayMatchedObj = published_date_href?.match(/\/day\/(\d+)\//);
-  const year =
-    yearMatchedObj && yearMatchedObj.length >= 2 ? yearMatchedObj[1] : "";
-  const month =
-    monthMatchedObj && monthMatchedObj.length >= 2 ? monthMatchedObj[1] : "";
-  const day =
-    dayMatchedObj && dayMatchedObj.length >= 2 ? dayMatchedObj[1] : "";
+  const year = yearMatchedObj && yearMatchedObj.length >= 2 ? yearMatchedObj[1] : "";
+  const month = monthMatchedObj && monthMatchedObj.length >= 2 ? monthMatchedObj[1] : "";
+  const day = dayMatchedObj && dayMatchedObj.length >= 2 ? dayMatchedObj[1] : "";
   const voiceActorXPathResult = document.evaluate(
     "//th[contains(text(), '声優')]/following-sibling::td/a",
     document,
     null,
     XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-    null
+    null,
   );
   const voiceActors: string[] = [];
   for (let i = 0; i < voiceActorXPathResult.snapshotLength; i++) {
@@ -74,9 +65,7 @@ function downloadWorkInfo(): void {
     }
   }
   const voiceActorsStr = voiceActors.join(", ");
-  const cleanedUpWorkName = removeWhiteHeavyCheckMark(
-    removeBracketedText(workName)
-  );
+  const cleanedUpWorkName = removeWhiteHeavyCheckMark(removeBracketedText(workName));
   const text = JSON.stringify(
     {
       声優: voiceActorsStr,
@@ -93,7 +82,7 @@ function downloadWorkInfo(): void {
       フォルダ名: `[${makerName}] ${workName}`,
     },
     null,
-    2
+    2,
   );
 
   const saveFileName = ("[" + makerName + "] " + cleanedUpWorkName).replace(
@@ -112,14 +101,14 @@ function downloadWorkInfo(): void {
         ["\\", "￥"],
       ]);
       return map.get(e) ?? e;
-    }
+    },
   );
   downloadAsFile(`${saveFileName}.txt`, [text], "text/plain");
 }
 
 function downloadWorksJacketImage(): void {
   const imageElement = document.querySelector(
-    "#work_left ul.slider_items li:first-of-type source"
+    "#work_left ul.slider_items li:first-of-type source",
   ) as HTMLImageElement;
   if (imageElement === null) {
     alert("ジャケット画像を取得できませんでした。");
@@ -161,9 +150,7 @@ function downloadWorksJacketImage(): void {
       }, "image/png"); // PNG形式を指定
     } catch (e) {
       // Canvas操作中のエラー (多くはCORS関連)
-      alert(
-        `画像の処理に失敗しました (CORSの問題の可能性が高いです):\n${imageUrl}`
-      );
+      alert(`画像の処理に失敗しました (CORSの問題の可能性が高いです):\n${imageUrl}`);
     }
   };
   // 画像の読み込みを開始

@@ -18,11 +18,7 @@ interface WorkInfo {
 
 
 
-function downloadAsFile(
-  fileName: string,
-  BlobPart: BlobPart[],
-  mimeType: string
-): void {
+function downloadAsFile(fileName: string, BlobPart: BlobPart[], mimeType: string): void {
   const blob = new Blob(BlobPart, { type: mimeType });
   const downloadURL = URL.createObjectURL(blob);
   const downloadLink = document.createElement("a");
@@ -66,7 +62,7 @@ function getWorkInfoFromDOM(): WorkInfo | null {
     document,
     null,
     XPathResult.FIRST_ORDERED_NODE_TYPE,
-    null
+    null,
   ).singleNodeValue as HTMLAnchorElement | null;
 
   let releaseDateHref: string | null = null;
@@ -83,7 +79,7 @@ function getWorkInfoFromDOM(): WorkInfo | null {
       document,
       null,
       XPathResult.FIRST_ORDERED_NODE_TYPE,
-      null
+      null,
     ).singleNodeValue as HTMLElement | null;
     if (releaseDateTd) {
       releaseDateText = releaseDateTd.textContent?.trim() ?? null;
@@ -92,10 +88,7 @@ function getWorkInfoFromDOM(): WorkInfo | null {
     }
   }
 
-  const { year, month, day } = parseReleaseDate(
-    releaseDateText,
-    releaseDateHref
-  );
+  const { year, month, day } = parseReleaseDate(releaseDateText, releaseDateHref);
 
   if (!year || !month || !day) {
     console.error("Failed to parse release date.", { releaseDateText, releaseDateHref });
@@ -106,7 +99,7 @@ function getWorkInfoFromDOM(): WorkInfo | null {
     document,
     null,
     XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-    null
+    null,
   );
   const voiceActors: string[] = [];
   for (let i = 0; i < voiceActorXPathResult.snapshotLength; i++) {
@@ -116,16 +109,14 @@ function getWorkInfoFromDOM(): WorkInfo | null {
     }
   }
   const voiceActorsStr = voiceActors.join(", ");
-  const cleanedUpWorkName = removeWhiteHeavyCheckMark(
-    removeBracketedText(workName)
-  );
+  const cleanedUpWorkName = removeWhiteHeavyCheckMark(removeBracketedText(workName));
 
   const ageRestrictionXPathResult = document.evaluate(
     "//th[contains(., '年齢指定')]/following-sibling::td",
     document,
     null,
     XPathResult.FIRST_ORDERED_NODE_TYPE,
-    null
+    null,
   );
   const ageRestrictionElement = ageRestrictionXPathResult.singleNodeValue;
   const ageRestriction = ageRestrictionElement?.textContent?.trim() ?? "";
@@ -161,18 +152,16 @@ function downloadWorkInfo(): void {
       フォルダ名: `[${info.makerName}] ${info.workName}`,
     },
     null,
-    2
+    2,
   );
 
-  const saveFileName = sanitizeFileName(
-    `[${info.makerName}] ${info.cleanedUpWorkName}`
-  );
+  const saveFileName = sanitizeFileName(`[${info.makerName}] ${info.cleanedUpWorkName}`);
   downloadAsFile(`${saveFileName}.txt`, [text], "text/plain");
 }
 
 function downloadWorksJacketImage(): void {
   const imageElement = document.querySelector(
-    "#work_left ul.slider_items li:first-of-type source"
+    "#work_left ul.slider_items li:first-of-type source",
   ) as HTMLImageElement;
   if (imageElement === null) {
     alert("ジャケット画像を取得できませんでした。");
@@ -194,10 +183,7 @@ function downloadWorksJacketImage(): void {
     try {
       // Canvasを作成
       const canvas = document.createElement("canvas");
-      const size = Math.max(
-        originalImage.naturalWidth,
-        originalImage.naturalHeight
-      );
+      const size = Math.max(originalImage.naturalWidth, originalImage.naturalHeight);
       canvas.width = size;
       canvas.height = size;
       const ctx = canvas.getContext("2d");
@@ -223,11 +209,9 @@ function downloadWorksJacketImage(): void {
           alert(`PNG Blobの生成に失敗しました: ${imageUrl}`);
         }
       }, "image/png"); // PNG形式を指定
-    } catch (e) {
+    } catch {
       // Canvas操作中のエラー (多くはCORS関連)
-      alert(
-        `画像の処理に失敗しました (CORSの問題の可能性が高いです):\n${imageUrl}`
-      );
+      alert(`画像の処理に失敗しました (CORSの問題の可能性が高いです):\n${imageUrl}`);
     }
   };
   // 画像の読み込みを開始
@@ -247,7 +231,7 @@ export function determineGenre(ageRestriction: string): string {
 
 export function parseReleaseDate(
   dateString: string | null,
-  urlString: string | null
+  urlString: string | null,
 ): { year: string; month: string; day: string } {
   let year = "";
   let month = "";

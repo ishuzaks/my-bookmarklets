@@ -2,26 +2,22 @@
   "name": "my-bookmarklets",
   "version": "1.0.0",
   "description": "",
+  "keywords": [ ],
+  "license": "MIT",
+  "author": "",
   "main": "index.js",
   "scripts": {
     "build": "node esbuild.mjs src/DLsiteVoiceWorkInfoExporter.ts",
-    "test": "vitest",
-    "lint": "eslint .",
-    "format": "prettier --write ."
+    "test": "vitest run",
+    "lint": "oxlint .",
+    "format": "oxfmt ."
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
   "devDependencies": {
-    "@eslint/create-config": "^1.6.0",
-    "@eslint/js": "^9.24.0",
-    "esbuild": "^0.27.2",
-    "eslint": "^9.24.0",
+    "esbuild": "^0.24.2",
     "globals": "^15.15.0",
-    "jsdom": "^27.4.0",
-    "prettier": "^3.5.3",
+    "oxfmt": "^0.40.0",
+    "oxlint": "^1.55.0",
     "typescript": "^5.8.2",
-    "typescript-eslint": "^8.29.0",
-    "vitest": "^4.0.16"
+    "vitest": "^4.1.0"
   }
 }
